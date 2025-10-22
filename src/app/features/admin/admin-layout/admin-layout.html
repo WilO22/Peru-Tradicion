@@ -1,7 +1,16 @@
 <div class="flex h-screen">
-  <aside class="w-64 bg-gray-900 text-white p-6">
+  <aside class="w-64 bg-gray-900 text-white p-6 flex flex-col">
     <h2 class="text-2xl font-bold mb-6">Perú Tradición Admin</h2>
+
     <p>SIDEBAR DE ADMIN (Layout)</p>
+
+    <div class="mt-auto border-t border-gray-700 pt-4">
+      <button (click)="handleLogout()" 
+              class="w-full flex items-center justify-center px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Cerrar Sesión
+      </button>
+    </div>
   </aside>
 
   <main class="flex-1 p-10 bg-gray-100 overflow-y-auto">

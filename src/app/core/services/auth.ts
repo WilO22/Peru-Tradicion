@@ -1,48 +1,70 @@
 // src/app/core/services/auth.ts
 
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Auth as FirebaseAuth, GoogleAuthProvider, signInWithPopup, signOut, User } from '@angular/fire/auth';
 
-// 1. LA CORRECCIÓN:
-// Importamos 'Auth' pero lo renombramos a 'FirebaseAuth'
-// para evitar la colisión con nuestra clase local 'Auth'.
-import { 
-  Auth as FirebaseAuth, // <-- ¡Aquí está la magia!
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  User 
-} from '@angular/fire/auth';
+// 1. IMPORTAMOS LO NECESARIO PARA FIRESTORE
+import { Firestore as FirebaseFirestore, doc, getDoc } from '@angular/fire/firestore';
 
-// El tipo para nuestro Signal de estado de autenticación
 type AuthState = User | null | undefined;
 
 @Injectable({
   providedIn: 'root'
 })
-// 2. Mantenemos el nombre de tu clase (sin sufijo)
 export class Auth { 
 
-  // 3. Usamos el alias 'FirebaseAuth' para la inyección y el tipado
   private auth: FirebaseAuth = inject(FirebaseAuth);
+  // 2. INYECTAMOS FIRESTORE
+  private firestore = inject(FirebaseFirestore);
 
-  // GESTIÓN DE ESTADO CON SIGNALS (Principio 1)
+  // --- Signals de Estado ---
   readonly #currentUser = signal<AuthState>(undefined);
+  // 3. NUEVO SIGNAL PARA EL ROL DE ADMIN
+  readonly #isAdmin = signal<boolean>(false);
+
+  // --- Signals Públicos ---
   public readonly currentUser = this.#currentUser.asReadonly();
+  // 4. HACEMOS PÚBLICO EL SIGNAL DE ADMIN
+  public readonly isAdmin = this.#isAdmin.asReadonly();
+
+  // 5. NUEVO SIGNAL COMPUTADO DE "ESTADO TOTAL"
+  // Útil para saber si ya terminamos de cargar (usuario + rol)
+  public readonly authState = computed(() => {
+    return {
+      user: this.#currentUser(),
+      isAdmin: this.#isAdmin(),
+      isLoading: this.#currentUser() === undefined
+    }
+  });
 
   constructor() {
-    // Usamos 'this.auth' (que es la instancia de FirebaseAuth)
-    this.auth.onAuthStateChanged(user => {
-      this.#currentUser.set(user);
+    this.auth.onAuthStateChanged(async (user) => {
+      // Si el usuario inicia sesión...
+      if (user) {
+        this.#currentUser.set(user);
+        // ...vamos a Firestore a comprobar si es admin
+        const userDocRef = doc(this.firestore, 'admins', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        // Si el documento con su UID existe en la colección 'admins'...
+        if (userDocSnap.exists()) {
+          this.#isAdmin.set(true); // ...¡Es admin!
+        } else {
+          this.#isAdmin.set(false); // ...No es admin.
+        }
+      } 
+      // Si el usuario cierra sesión...
+      else {
+        this.#currentUser.set(null);
+        this.#isAdmin.set(false);
+      }
     });
   }
 
-  // Método para iniciar sesión con Google
   loginWithGoogle() {
     const provider = new GoogleAuthProvider();
     return signInWithPopup(this.auth, provider);
   }
 
-  // Método para cerrar sesión
   logout() {
     return signOut(this.auth);
   }
