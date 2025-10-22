@@ -1,7 +1,7 @@
 // src/app/features/auth/login-page/login-page.ts
 
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+// Ya no necesitamos Router aquí
 import { Auth } from '../../../core/services/auth';
 
 @Component({
@@ -14,15 +14,13 @@ import { Auth } from '../../../core/services/auth';
 export default class LoginPage {
 
   private authService = inject(Auth);
-  private router = inject(Router);
+  // private router = inject(Router); // <-- Ya no es necesario
 
   async handleLogin() {
     try {
+      // Solo iniciamos el login, el servicio hará el resto
       await this.authService.loginWithGoogle();
-
-      // Ahora, el guard se encargará de esperar.
-      this.router.navigate(['/admin']); 
-
+      // No navegamos desde aquí
     } catch (error) {
       console.error('Error durante el inicio de sesión:', error);
     }

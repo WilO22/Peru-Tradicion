@@ -1,9 +1,8 @@
 // src/app/core/services/auth.ts
 
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal, effect, untracked } from '@angular/core'; // <-- Añade effect y untracked
+import { Router } from '@angular/router'; // <-- Añade Router
 import { Auth as FirebaseAuth, GoogleAuthProvider, signInWithPopup, signOut, User } from '@angular/fire/auth';
-
-// 1. IMPORTAMOS LO NECESARIO PARA FIRESTORE
 import { Firestore as FirebaseFirestore, doc, getDoc } from '@angular/fire/firestore';
 
 type AuthState = User | null | undefined;
@@ -11,61 +10,73 @@ type AuthState = User | null | undefined;
 @Injectable({
   providedIn: 'root'
 })
-export class Auth { 
+export class Auth {
 
   private auth: FirebaseAuth = inject(FirebaseAuth);
-  // 2. INYECTAMOS FIRESTORE
   private firestore = inject(FirebaseFirestore);
+  private router = inject(Router); // <-- Inyecta el Router
 
   // --- Signals de Estado ---
   readonly #currentUser = signal<AuthState>(undefined);
-  // 3. NUEVO SIGNAL PARA EL ROL DE ADMIN
-  readonly #isAdmin = signal<boolean>(false);
+  readonly #isAdmin = signal<boolean | undefined>(undefined); // <-- Cambiado a undefined inicial
 
   // --- Signals Públicos ---
   public readonly currentUser = this.#currentUser.asReadonly();
-  // 4. HACEMOS PÚBLICO EL SIGNAL DE ADMIN
   public readonly isAdmin = this.#isAdmin.asReadonly();
 
-  // 5. NUEVO SIGNAL COMPUTADO DE "ESTADO TOTAL"
-  // Útil para saber si ya terminamos de cargar (usuario + rol)
+  // Signal computado para saber si estamos cargando
+  public readonly isLoading = computed(() =>
+    this.#currentUser() === undefined || this.#isAdmin() === undefined
+  );
+
+  // Signal computado para el estado completo (simplificado)
   public readonly authState = computed(() => {
     return {
       user: this.#currentUser(),
-      isAdmin: this.#isAdmin(),
-      isLoading: this.#currentUser() === undefined
+      isAdmin: this.#isAdmin() ?? false, // <-- Si es undefined, trátalo como false
+      isLoading: this.isLoading()
     }
   });
 
   constructor() {
     this.auth.onAuthStateChanged(async (user) => {
-      // Si el usuario inicia sesión...
       if (user) {
+        // Ponemos el usuario inmediatamente, pero isAdmin aún no se sabe
         this.#currentUser.set(user);
-        // ...vamos a Firestore a comprobar si es admin
+        this.#isAdmin.set(undefined); // <-- Indica que estamos buscando el rol
+
         const userDocRef = doc(this.firestore, 'admins', user.uid);
         const userDocSnap = await getDoc(userDocRef);
-        // Si el documento con su UID existe en la colección 'admins'...
+
         if (userDocSnap.exists()) {
-          this.#isAdmin.set(true); // ...¡Es admin!
+          this.#isAdmin.set(true);
+          // NAVEGACIÓN DESDE EL SERVICIO: Si es admin, lo mandamos al dashboard
+          // Usamos untracked para evitar bucles si la navegación causa otro cambio de estado
+          untracked(() => this.router.navigate(['/admin']));
         } else {
-          this.#isAdmin.set(false); // ...No es admin.
+          this.#isAdmin.set(false);
+          // Si NO es admin, lo mandamos explícitamente al login (o a donde quieras)
+          // Puedes comentar esta línea si prefieres que se quede donde esté
+          untracked(() => this.router.navigate(['/login']));
         }
-      } 
-      // Si el usuario cierra sesión...
+      }
       else {
         this.#currentUser.set(null);
-        this.#isAdmin.set(false);
+        this.#isAdmin.set(false); // <-- Asegura que isAdmin sea false al hacer logout
       }
     });
   }
 
   loginWithGoogle() {
+    // Ya no necesitamos esperar aquí, onAuthStateChanged se encargará
     const provider = new GoogleAuthProvider();
     return signInWithPopup(this.auth, provider);
   }
 
   logout() {
-    return signOut(this.auth);
+     // Aseguramos la redirección al login tras cerrar sesión
+     return signOut(this.auth).then(() => {
+       this.router.navigate(['/login']);
+     });
   }
 }

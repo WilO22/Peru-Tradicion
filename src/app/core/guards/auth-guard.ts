@@ -3,39 +3,31 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from '../services/auth';
-
-// 1. Importaciones de RxJS para manejar el "esperar"
 import { toObservable } from '@angular/core/rxjs-interop';
 import { filter, map, take } from 'rxjs/operators';
 
-// 'state' aquí es el RouterStateSnapshot
-export const authGuard: CanActivateFn = (route, state) => { 
+export const authGuard: CanActivateFn = (route, state) => {
 
   const authService = inject(Auth);
   const router = inject(Router);
 
-  // 2. Convertimos nuestro Signal 'authState' en un Observable
-  // Esto nos permite "esperar" a que emita un valor.
-  return toObservable(authService.authState).pipe(
-
-    // 3. Filtramos: Solo nos interesan los estados que NO estén "cargando"
-    // Ignoramos la emisión inicial donde 'isLoading' es true.
-    filter(authState => !authState.isLoading),
-
-    // 4. Tomamos: Solo queremos el primer valor (una sola vez)
+  // Convertimos el signal isLoading a Observable
+  return toObservable(authService.isLoading).pipe(
+    // Esperamos hasta que isLoading sea false
+    filter(loading => !loading),
+    // Tomamos solo el primer valor (cuando termina de cargar)
     take(1),
-
-    // 5. Mapeamos: Decidimos si el usuario puede pasar
-    map(authState => {
-      // LA LÓGICA CLAVE:
-      // ¿El usuario está logueado Y es admin?
-      if (authState.user && authState.isAdmin) {
-        return true; // ¡Sí, puede pasar!
+    // Mapeamos al resultado final
+    map(() => {
+      // Leemos el estado actual (ya no está cargando)
+      const currentAuthState = authService.authState();
+      if (currentAuthState.user && currentAuthState.isAdmin) {
+        return true; // Permitir acceso
+      } else {
+        // Si no es admin o no está logueado, redirigir a login
+        router.navigate(['/login']);
+        return false;
       }
-
-      // Si no es admin (o no está logueado), lo mandamos al login.
-      router.navigate(['/login']);
-      return false;
     })
   );
 };
