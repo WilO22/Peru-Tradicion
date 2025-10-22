@@ -1,1 +1,79 @@
-<p>catalog-page works!</p>
+<section class="mb-10 text-center">
+  <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">Nuestro Catálogo</h2>
+  <p class="text-gray-600 max-w-2xl mx-auto mb-6">Explora la riqueza cultural de Perú a través de sus danzas y vestimentas tradicionales.</p>
+
+  <div class="w-full overflow-x-auto pb-2 no-scrollbar">
+    <div id="filters" class="flex justify-start sm:justify-center items-center gap-2 sm:gap-4 whitespace-nowrap px-2">
+
+      <button (click)="setSizeFilter('Todos')" 
+              [class.active]="firestore.sizeFilter() === 'Todos'"
+              class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-100 transition flex-shrink-0">
+        Todos
+      </button>
+      <button (click)="setSizeFilter('S')" 
+              [class.active]="firestore.sizeFilter() === 'S'"
+              class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-100 transition flex-shrink-0">
+        Talla S
+      </button>
+      <button (click)="setSizeFilter('M')" 
+              [class.active]="firestore.sizeFilter() === 'M'"
+              class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-100 transition flex-shrink-0">
+        Talla M
+      </button>
+      <button (click)="setSizeFilter('L')" 
+              [class.active]="firestore.sizeFilter() === 'L'"
+              class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-100 transition flex-shrink-0">
+        Talla L
+      </button>
+      <button (click)="setSizeFilter('XL')" 
+              [class.active]="firestore.sizeFilter() === 'XL'"
+              class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-100 transition flex-shrink-0">
+        Talla XL
+      </button>
+    </div>
+  </div>
+</section>
+
+<div id="costume-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+
+  @for (costume of firestore.filteredCostumes(); track costume.id) {
+    <div class="costume-card bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out">
+      <div class="relative">
+        <img class="w-full h-72 object-cover" [src]="costume.image" [alt]="costume.name">
+
+        <span class="absolute top-3 left-3 text-xs font-bold py-1 px-3 rounded-full"
+              [class.bg-sky-100]="costume.region === 'Costa'"
+              [class.text-sky-800]="costume.region === 'Costa'"
+              [class.bg-amber-100]="costume.region === 'Sierra'"
+              [class.text-amber-800]="costume.region === 'Sierra'"
+              [class.bg-green-100]="costume.region === 'Selva'"
+              [class.text-green-800]="costume.region === 'Selva'">
+          {{ costume.region }}
+        </span>
+      </div>
+      <div class="p-5">
+        <h3 class="text-lg font-bold text-gray-800 truncate">{{ costume.name }}</h3>
+        <p class="text-sm text-gray-600 my-2 h-10 overflow-hidden">{{ costume.description }}</p>
+        <p class="text-indigo-600 font-semibold text-xl my-2">{{ costume.price | currency:'S/ ' }}</p>
+        <div class="flex items-center gap-2 mt-3">
+          <span class="text-sm font-medium text-gray-600">Tallas:</span>
+          <div class="flex gap-2 flex-wrap">
+            @for (size of costume.sizes; track $index) {
+              <span class="border border-gray-300 rounded-full px-2 py-0.5 text-xs">{{ size }}</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (firestore.filteredCostumes().length === 0) {
+    <p class="col-span-full text-center text-gray-500 text-lg py-8">
+      @if (firestore.costumes().length === 0) {
+        <span>Cargando disfraces desde Firebase...</span>
+      } @else {
+        <span>No se encontraron disfraces con los filtros seleccionados.</span>
+      }
+    </p>
+  }
+</div>

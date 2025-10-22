@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* src/styles.css */
+
+.filter-btn.active {
+  background-color: #4f46e5; /* indigo-600 */
+  color: white;
+  font-weight: 600;
+}
+
+.nav-link.active-nav {
+  color: #4f46e5; /* indigo-600 */
+  font-weight: 700;
+}
