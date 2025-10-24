@@ -1,31 +1,42 @@
 // src/app/app.config.ts
 
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core'; // 👈 Eliminamos 'importProvidersFrom'
+import { ApplicationConfig, LOCALE_ID, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-
-import { routes } from './app.routes';
+import { registerLocaleData } from '@angular/common';
+import localeEsPE from '@angular/common/locales/es-PE';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+// 👇 Importa provideHttpClient y withFetch
+import { provideHttpClient, withFetch } from '@angular/common/http';
+// 👇 Importa provideAnimations
+import { provideAnimations } from '@angular/platform-browser/animations';
 
-// 1. Importa el environment y Firebase
-import { environment } from '../environments/environment.development';
+import { routes } from './app.routes'; // Asegúrate que esta ruta sea correcta
+import { environment } from '../environments/environment.development'; // Asegúrate que esta ruta sea correcta
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideStorage, getStorage } from '@angular/fire/storage';
 
+// Registra el locale ANTES de la configuración
+registerLocaleData(localeEsPE, 'es-PE');
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    // --- Proveedores existentes de Angular ---
-    provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
 
-    // --- 2. Añadimos nuestros proveedores de Firebase (¡CORREGIDO!) ---
-    // Ya no usamos importProvidersFrom, se pasan directamente
+    // Firebase Providers
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage())
+    provideStorage(() => getStorage()),
+
+    // Proveedor para LOCALE_ID
+    { provide: LOCALE_ID, useValue: 'es-PE' },
+
+    // 👇 Añade estos dos proveedores
+    provideHttpClient(withFetch()), // Para futuras APIs y Storage
+    provideAnimations() // Para animaciones (útil para el modal)
   ]
 };

@@ -27,4 +27,23 @@ export const routes: Routes = [
     ]
   },
   // ... (ruta pública) ...
+  {
+
+    path: '',
+
+    loadComponent: () => import('./features/public/public-layout/public-layout'),
+
+    children: [
+
+      {
+
+        path: '',
+
+        loadComponent: () => import('./features/public/pages/catalog-page/catalog-page')
+
+      }
+
+    ]
+
+  }
 ];
