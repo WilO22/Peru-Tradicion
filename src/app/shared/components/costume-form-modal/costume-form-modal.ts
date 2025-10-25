@@ -23,7 +23,7 @@ function requireAtLeastOneSize(): ValidatorFn {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule], // <-- Módulos necesarios
   templateUrl: './costume-form-modal.html',
-  styleUrl: './costume-form-modal.css'
+  styleUrls: ['./costume-form-modal.css']
 })
 export default class CostumeFormModal implements OnInit, OnChanges { // <-- Implementa OnChanges
   private fb = inject(FormBuilder);

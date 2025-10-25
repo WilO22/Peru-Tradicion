@@ -10,7 +10,7 @@ import { Banner } from '../../../core/models/banner'; // <-- Verifica la ruta
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './banner-form-modal.html',
-  styleUrl: './banner-form-modal.css'
+  styleUrls: ['./banner-form-modal.css']
 })
 export default class BannerFormModal implements OnInit, OnChanges { // <-- Nombre de clase sin sufijo
   private fb = inject(FormBuilder);

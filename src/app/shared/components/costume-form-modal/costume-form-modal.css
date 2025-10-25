@@ -1,0 +1,26 @@
+/* Overlay that applies a subtle translucent layer plus a backdrop blur
+ 	- Uses backdrop-filter (and -webkit-backdrop-filter) to blur the page behind the modal.
+ 	- If backdrop-filter is not supported, falls back to a light translucent overlay
+ 		 (less dark than previous bg-black bg-opacity-50) to avoid a heavy black background.
+ */
+.modal-overlay {
+	/* light translucent base so the blur shows through */
+	background-color: rgba(255, 255, 255, 0.06);
+	/* enable backdrop blur for supporting browsers */
+	backdrop-filter: blur(6px) saturate(110%);
+	-webkit-backdrop-filter: blur(6px) saturate(110%);
+}
+
+/* Fallback for browsers without backdrop-filter support: use a gentle dark overlay,
+	 much lighter than the original 50% opaque black. */
+@supports not ((-webkit-backdrop-filter: blur(6px)) or (backdrop-filter: blur(6px))) {
+	.modal-overlay {
+		background-color: rgba(0, 0, 0, 0.14);
+	}
+}
+
+/* Ensure sticky headers remain solid white */
+.modal-overlay .sticky {
+	background-color: #ffffff;
+}
+
