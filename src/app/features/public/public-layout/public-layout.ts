@@ -1,21 +1,21 @@
 // src/app/features/public/public-layout/public-layout.ts
 
-import { Component, inject } from '@angular/core'; // <-- Asegúrate que 'inject' esté
-import { RouterOutlet } from '@angular/router';
-import { Firestore } from '../../../core/services/firestore'; // <-- Importa el servicio
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router'; // <-- Añade RouterLink
+import { Firestore } from '../../../core/services/firestore';
 
 @Component({
   selector: 'app-public-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink], // <-- Añade RouterLink a imports
   templateUrl: './public-layout.html',
   styleUrl: './public-layout.css'
 })
 export default class PublicLayout {
-  // Inyecta el servicio y hazlo público para el HTML
-  public firestore = inject(Firestore); 
+  public firestore = inject(Firestore);
+  // Variable para el año actual en el footer
+  public currentYear = new Date().getFullYear();
 
-  // Expone el método para que el HTML lo llame
   setRegionFilter(region: any) {
     this.firestore.setRegionFilter(region);
   }

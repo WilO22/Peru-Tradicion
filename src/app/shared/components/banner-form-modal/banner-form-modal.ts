@@ -1,6 +1,3 @@
-// 
-//---------------------------------------------------
-
 // src/app/shared/components/banner-form-modal/banner-form-modal.ts
 
 import { Component, EventEmitter, Input, Output, inject, OnInit, signal, OnChanges, SimpleChanges } from '@angular/core';
