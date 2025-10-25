@@ -1,0 +1,80 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeModal()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all duration-300 ease-in-out max-h-[90vh] overflow-y-auto"
+       (click)="$event.stopPropagation()">
+
+    <div class="flex justify-between items-center p-5 border-b sticky top-0 bg-white z-10">
+      <h3 class="text-xl font-bold text-gray-800">
+        {{ bannerToEdit ? 'Editar Banner' : 'Agregar Nuevo Banner' }}
+      </h3>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" class="p-6 space-y-4">
+
+      <div>
+        <label for="banner-festivity" class="block text-sm font-medium text-gray-700 mb-1">Festividad</label>
+        <input type="text" id="banner-festivity" formControlName="festivity"
+               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+               [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': f['festivity'].touched && f['festivity'].invalid }">
+        @if (f['festivity'].touched && f['festivity'].hasError('required')) {
+          <p class="text-red-600 text-xs mt-1">La festividad es obligatoria.</p>
+        }
+      </div>
+
+      <div>
+        <label for="banner-title" class="block text-sm font-medium text-gray-700 mb-1">Título del Banner</label>
+        <input type="text" id="banner-title" formControlName="title"
+               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+               [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': f['title'].touched && f['title'].invalid }">
+        @if (f['title'].touched && f['title'].hasError('required')) {
+          <p class="text-red-600 text-xs mt-1">El título es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label for="banner-subtitle" class="block text-sm font-medium text-gray-700 mb-1">Subtítulo</label>
+        <textarea id="banner-subtitle" formControlName="subtitle" rows="2"
+                  class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+      </div>
+
+       <div>
+        <label for="banner-button-text" class="block text-sm font-medium text-gray-700 mb-1">Texto del Botón</label>
+        <input type="text" id="banner-button-text" formControlName="buttonText"
+               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+               [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': f['buttonText'].touched && f['buttonText'].invalid }">
+        @if (f['buttonText'].touched && f['buttonText'].hasError('required')) {
+          <p class="text-red-600 text-xs mt-1">El texto del botón es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Imagen del Banner</label>
+        <div class="mt-1 flex items-center gap-4">
+          <img [src]="imagePreview() || 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Vista+Previa'"
+               alt="Vista previa" class="w-24 h-24 object-cover rounded-lg bg-slate-100">
+          <input type="file" id="banner-image-upload" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+          <label for="banner-image-upload"
+                 class="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ imageFile || bannerToEdit?.image ? 'Cambiar Imagen' : 'Seleccionar Imagen' }}
+          </label>
+        </div>
+         @if (!bannerToEdit && bannerForm.touched && !imageFile) {
+           <p class="text-red-600 text-xs mt-1">La imagen es obligatoria para nuevos banners.</p>
+         }
+      </div>
+
+      <div class="pt-4 flex justify-end gap-3 sticky bottom-0 bg-white py-4 px-6 -mx-6 border-t">
+        <button type="button" (click)="closeModal()"
+                class="bg-slate-100 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-200 transition-colors">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="bannerForm.invalid || (!bannerToEdit && !imageFile)"
+                class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Guardar Banner
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
