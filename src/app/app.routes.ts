@@ -22,6 +22,11 @@ export const routes: Routes = [
         path: 'manage-costumes', // La URL será /admin/manage-costumes
         loadComponent: () => import('./features/admin/pages/manage-costumes/manage-costumes')
       },
+      // --- 👇 AÑADE ESTA NUEVA RUTA ---
+      {
+        path: 'manage-banners', // URL: /admin/manage-banners
+        loadComponent: () => import('./features/admin/pages/manage-banners/manage-banners') // Verifica la ruta
+      },
       // ---------------------------------
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
