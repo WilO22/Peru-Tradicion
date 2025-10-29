@@ -1,1 +1,82 @@
-<p>login works!</p>
+<div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl">
+    <div class="text-center">
+      <div class="flex justify-center mb-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-red-600"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <h2 class="text-3xl font-extrabold text-gray-900">Iniciar Sesión</h2>
+      <p class="mt-2 text-sm text-gray-600">
+        ¿Aún no tienes cuenta?
+        <a [routerLink]="['/register']" class="font-medium text-indigo-600 hover:text-indigo-500">
+          Regístrate aquí
+        </a>
+      </p>
+    </div>
+
+    <form class="mt-8 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label for="email-address" class="sr-only">Email</label>
+          <input
+            id="email-address"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            formControlName="email"
+            class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+            placeholder="Correo electrónico"
+          />
+        </div>
+        <div>
+          <label for="password" class="sr-only">Contraseña</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            formControlName="password"
+            class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+            placeholder="Contraseña"
+          />
+        </div>
+      </div>
+
+      @if (loginError()) {
+      <p class="text-center text-sm text-red-600">{{ loginError() }}</p>
+      }
+
+      <div>
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white transition-colors duration-300"
+          [class.bg-indigo-600]="!isLoading()"
+          [class.hover:bg-indigo-700]="!isLoading()"
+          [class.bg-indigo-400]="isLoading()"
+          [class.cursor-not-allowed]="isLoading()"
+        >
+          @if (isLoading()) {
+          <span class="mr-2">Procesando...</span>
+          } @else {
+          <span>Ingresar</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
