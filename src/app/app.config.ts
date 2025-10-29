@@ -18,12 +18,22 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 
+// 1. Importa el proveedor de la LIBRERÍA CORRECTA
+import { provideHotToastConfig, ToastOptions } from '@ngxpert/hot-toast'; // <-- ¡Nombre corregido!
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(), // <-- Lo mantenemos, es una buena práctica de la CLI
     provideZonelessChangeDetection(),     // <-- ¡El proveedor correcto!
     provideRouter(routes),
     provideClientHydration(withEventReplay()), // <-- Lo mantenemos, optimiza el SSR
+
+    // 2. Añádelo a tu lista de providers
+    provideHotToastConfig({
+      position: 'bottom-center', // <-- ¡Nuestra nueva posición por defecto!
+      // Aquí podrías añadir otras opciones globales si quisieras,
+      // como duración, colores, etc. Consulta la documentación de la librería.
+    }), // <-- ¡Nombre corregido!
 
     // Proveedores de Firebase con nuestro environment
     provideFirebaseApp(() =>
