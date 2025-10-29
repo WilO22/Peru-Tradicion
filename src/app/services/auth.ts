@@ -2,28 +2,30 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-// 1. LA SOLUCIÓN: Renombramos la 'Auth' de Firebase a 'FirebaseAuth'
+// 1. GESTIÓN DE NOMBRES (PROACTIVO)
 import {
-  Auth as FirebaseAuth, // <-- ¡AQUÍ ESTÁ LA MAGIA!
+  Auth as FirebaseAuth,
   signInWithEmailAndPassword,
   signOut,
   authState,
-  User
+  User as FirebaseUser, // <-- Renombramos 'User' a 'FirebaseUser'
+  createUserWithEmailAndPassword // <-- Importamos la función de registro
 } from '@angular/fire/auth';
 import { toSignal } from '@angular/core/rxjs-interop';
+
+// 2. INYECTAMOS NUESTRO OTRO SERVICIO
+import { User } from './user'; // <-- Importamos nuestro servicio 'User' (de perfiles)
 
 @Injectable({
   providedIn: 'root'
 })
-export class Auth { // <-- Nuestra clase se mantiene con el nombre moderno
+export class Auth { // <-- Nuestro servicio de Autenticación
 
-  // --- Principios Fundamentales en Acción ---
-
-  // 2. Usamos el nuevo nombre 'FirebaseAuth' para el tipo y para el 'inject'
   #auth: FirebaseAuth = inject(FirebaseAuth);
   #router: Router = inject(Router);
+  #userService: User = inject(User); // <-- 3. Inyectamos nuestro servicio 'User'
 
-  // 3. 'authState' viene de nuestra importación renombrada y funciona igual
+  // 4. Actualizamos el tipo del signal
   readonly currentUser = toSignal(authState(this.#auth));
 
   constructor() {
@@ -34,13 +36,44 @@ export class Auth { // <-- Nuestra clase se mantiene con el nombre moderno
 
   // --- Métodos Públicos ---
 
+  /**
+   * Registra un nuevo usuario y crea su perfil en Firestore
+   */
+  async register(email: string, password: string) {
+    try {
+      // --- PASO 1: Crear el usuario en Firebase Authentication ---
+      const userCredential = await createUserWithEmailAndPassword(this.#auth, email, password);
+      
+      const user = userCredential.user;
+      
+      if (!user) {
+        throw new Error('No se pudo crear el usuario en Firebase Auth.');
+      }
+
+      // --- PASO 2: Crear el perfil del usuario en Firestore ---
+      // Usamos nuestro servicio 'User' inyectado
+      await this.#userService.createUserProfile(user.uid, {
+        uid: user.uid,
+        email: user.email!, // El email no será nulo en este punto
+        role: 'cliente' // <-- ¡Aquí asignamos el ROL por defecto!
+      });
+
+      // (Opcional) Si el registro es exitoso, puedes redirigir
+      // this.#router.navigate(['/']); 
+
+    } catch (error) {
+      // Manejo de errores (ej. "el email ya está en uso")
+      console.error('Error durante el registro:', error);
+      // Relanzamos el error para que el componente que lo llamó lo pueda gestionar
+      throw error; 
+    }
+  }
+
   login(email: string, password: string) {
-    // 4. Usamos 'this.#auth' (que ahora es de tipo FirebaseAuth)
     return signInWithEmailAndPassword(this.#auth, email, password);
   }
 
   logout() {
-    // 5. Usamos 'this.#auth'
     signOut(this.#auth)
       .then(() => {
         this.#router.navigate(['/']);
