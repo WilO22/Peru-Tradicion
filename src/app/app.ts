@@ -1,12 +1,14 @@
-import { Component, signal } from '@angular/core';
+// src/app/app.component.ts
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  templateUrl: './app.html', // <-- Usamos el archivo HTML
+  styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('peru-tradicion');
+  // Borramos el 'title' que no se usa
 }
