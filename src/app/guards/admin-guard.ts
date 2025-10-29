@@ -1,50 +1,53 @@
 // src/app/guards/admin-guard.ts
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs'; // Para convertir el Observable del perfil en una Promesa
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
+// Importamos 'filter' para esperar el estado definitivo
+import { map, switchMap, take, of, filter } from 'rxjs'; 
 
-// 1. IMPORTAMOS NUESTROS SERVICIOS
 import { Auth } from '../services/auth';
-import { User } from '../services/user'; // Necesitamos este para obtener el perfil/rol
+import { User } from '../services/user';
+import { UserProfile } from '../interfaces/user.model';
 
-export const adminGuard: CanActivateFn = async (route, state) => {
-  // --- Principios Fundamentales en Acción ---
+// --- LA CORRECCIÓN ESTÁ AQUÍ ---
+// Importamos 'User' directamente y lo renombramos a 'FirebaseUser' EN ESTE ARCHIVO
+import { User as FirebaseUser } from '@angular/fire/auth';
 
-  // 2. INYECCIÓN DE DEPENDENCIAS CON inject() DENTRO DEL GUARD
+export const adminGuard: CanActivateFn = (route, state) => {
+  
   const authService = inject(Auth);
   const userService = inject(User);
   const router = inject(Router);
 
-  // 3. OBTENER EL USUARIO AUTENTICADO (SIGNAL)
-  const firebaseUser = authService.currentUser(); // Accedemos al valor actual del signal
-
-  if (firebaseUser) {
-    // 4. SI HAY USUARIO EN AUTH, OBTENER SU PERFIL DE FIRESTORE (ROL)
-    try {
-      // getUserProfile devuelve un Observable, lo convertimos a Promesa
-      // para poder usar await y simplificar la lógica asíncrona aquí.
-      const userProfile = await firstValueFrom(userService.getUserProfile(firebaseUser.uid));
-
-      // 5. LA LÓGICA DE NEGOCIO: ¿ES ADMIN?
-      if (userProfile && userProfile.role === 'admin') {
-        return true; // ¡Sí tiene permiso! Deja pasar.
-      } else {
-        // No es admin, redirigir al home
-        console.warn('Acceso denegado: El usuario no es administrador.');
-        router.navigate(['/']); // Redirige al Home
-        return false; // Bloquea la navegación.
+  return authService.user$.pipe(
+    // --- LA CORRECCIÓN CLAVE ---
+    // filter espera hasta que el valor emitido NO sea 'undefined'.
+    // Esto nos asegura que Firebase Auth ya inicializó su estado.
+    // 'Boolean' es un truco corto para filtrar null y undefined.
+    filter((user: FirebaseUser | null | undefined): user is FirebaseUser | null => user !== undefined), 
+    
+    take(1), // Una vez que tenemos un valor (User o null), tomamos solo ese.
+    
+    switchMap(firebaseUser => {
+      // CASO 1: Estado definitivo es 'null' (no logueado)
+      if (!firebaseUser) {
+        console.log('adminGuard: No hay usuario, redirigiendo a /login');
+        return of(router.createUrlTree(['/login']));
       }
-    } catch (error) {
-      // Error al obtener el perfil (ej. Firestore no disponible)
-      console.error('Error al obtener perfil en adminGuard:', error);
-      router.navigate(['/']); // Mejor redirigir a home por seguridad
-      return false; // Bloquea la navegación.
-    }
 
-  } else {
-    // 6. SI NO HAY USUARIO EN AUTH, REDIRIGIR A LOGIN
-    console.log('Acceso denegado: Usuario no autenticado.');
-    router.navigate(['/login']); // Redirige al Login
-    return false; // Bloquea la navegación.
-  }
+      // CASO 2: Hay usuario. Obtener su perfil de Firestore.
+      return userService.getUserProfile(firebaseUser.uid).pipe(
+        map((userProfile: UserProfile | undefined) => {
+          // CASO 3: Es Admin
+          if (userProfile && userProfile.role === 'admin') {
+            console.log('adminGuard: Acceso concedido (Admin)');
+            return true; 
+          }
+
+          // CASO 4: Es Cliente (o no tiene perfil)
+          console.log('adminGuard: Acceso denegado (No es Admin), redirigiendo a /');
+          return router.createUrlTree(['/']); 
+        })
+      );
+    })
+  );
 };

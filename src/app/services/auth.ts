@@ -1,32 +1,33 @@
 // src/app/services/auth.ts
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-
-// 1. GESTIÓN DE NOMBRES (PROACTIVO)
 import {
   Auth as FirebaseAuth,
   signInWithEmailAndPassword,
   signOut,
   authState,
-  User as FirebaseUser, // <-- Renombramos 'User' a 'FirebaseUser'
-  createUserWithEmailAndPassword // <-- Importamos la función de registro
+  User as FirebaseUser,
+  createUserWithEmailAndPassword
 } from '@angular/fire/auth';
 import { toSignal } from '@angular/core/rxjs-interop';
-
-// 2. INYECTAMOS NUESTRO OTRO SERVICIO
-import { User } from './user'; // <-- Importamos nuestro servicio 'User' (de perfiles)
+import { User } from './user';
 
 @Injectable({
   providedIn: 'root'
 })
-export class Auth { // <-- Nuestro servicio de Autenticación
+export class Auth {
 
   #auth: FirebaseAuth = inject(FirebaseAuth);
   #router: Router = inject(Router);
-  #userService: User = inject(User); // <-- 3. Inyectamos nuestro servicio 'User'
+  #userService: User = inject(User);
 
-  // 4. Actualizamos el tipo del signal
-  readonly currentUser = toSignal(authState(this.#auth));
+  // --- 1. EXPONER EL OBSERVABLE DE ESTADO ---
+  // Esta será nuestra "fuente de verdad" para los guards
+  readonly user$ = authState(this.#auth);
+
+  // --- 2. MODIFICAR EL SIGNAL ---
+  // Hacemos que el signal dependa de nuestro observable (más limpio)
+  readonly currentUser = toSignal(this.user$);
 
   constructor() {
     // effect(() => {
@@ -34,37 +35,20 @@ export class Auth { // <-- Nuestro servicio de Autenticación
     // });
   }
 
-  // --- Métodos Públicos ---
-
-  /**
-   * Registra un nuevo usuario y crea su perfil en Firestore
-   */
   async register(email: string, password: string) {
     try {
-      // --- PASO 1: Crear el usuario en Firebase Authentication ---
       const userCredential = await createUserWithEmailAndPassword(this.#auth, email, password);
-      
       const user = userCredential.user;
-      
       if (!user) {
         throw new Error('No se pudo crear el usuario en Firebase Auth.');
       }
-
-      // --- PASO 2: Crear el perfil del usuario en Firestore ---
-      // Usamos nuestro servicio 'User' inyectado
       await this.#userService.createUserProfile(user.uid, {
         uid: user.uid,
-        email: user.email!, // El email no será nulo en este punto
-        role: 'cliente' // <-- ¡Aquí asignamos el ROL por defecto!
+        email: user.email!,
+        role: 'cliente'
       });
-
-      // (Opcional) Si el registro es exitoso, puedes redirigir
-      // this.#router.navigate(['/']); 
-
     } catch (error) {
-      // Manejo de errores (ej. "el email ya está en uso")
       console.error('Error durante el registro:', error);
-      // Relanzamos el error para que el componente que lo llamó lo pueda gestionar
       throw error; 
     }
   }
