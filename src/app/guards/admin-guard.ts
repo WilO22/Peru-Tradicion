@@ -1,19 +1,11 @@
-// import { CanActivateFn } from '@angular/router';
-
-// export const adminGuard: CanActivateFn = (route, state) => {
-//   return true;
-// };
-
-
 // src/app/guards/admin-guard.ts
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs/operators'; // Importamos 'map' de RxJS
+import { firstValueFrom } from 'rxjs'; // Para convertir el Observable del perfil en una Promesa
 
 // 1. IMPORTAMOS NUESTROS SERVICIOS
 import { Auth } from '../services/auth';
 import { User } from '../services/user'; // Necesitamos este para obtener el perfil/rol
-import { firstValueFrom } from 'rxjs'; // Para convertir el Observable del perfil en una Promesa
 
 export const adminGuard: CanActivateFn = async (route, state) => {
   // --- Principios Fundamentales en Acción ---
@@ -37,7 +29,7 @@ export const adminGuard: CanActivateFn = async (route, state) => {
       if (userProfile && userProfile.role === 'admin') {
         return true; // ¡Sí tiene permiso! Deja pasar.
       } else {
-        // No es admin, redirigir al home (o a una página de 'acceso denegado')
+        // No es admin, redirigir al home
         console.warn('Acceso denegado: El usuario no es administrador.');
         router.navigate(['/']); // Redirige al Home
         return false; // Bloquea la navegación.
