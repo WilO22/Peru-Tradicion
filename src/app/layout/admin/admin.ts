@@ -1,22 +1,18 @@
 // src/app/layout/admin/admin.ts
 import { Component, inject } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router'; // Añadir RouterLinkActive
 import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  // Principio (Standalone): Importamos lo que usamos
-  imports: [RouterOutlet, RouterLink], 
+  imports: [RouterOutlet, RouterLink, RouterLinkActive], // Añadir RouterLinkActive
   templateUrl: './admin.html',
-  styleUrl: './admin.css'
+  styleUrl: './admin.css' // Puedes añadir estilos si quieres
 })
-export class Admin { // <-- El nombre de la clase debe ser 'Admin'
-  
-  // Inyectamos el servicio Auth
+export class Admin {
   #authService: Auth = inject(Auth);
 
-  // Método para el botón de "Cerrar Sesión"
   onLogout() {
     this.#authService.logout();
   }
