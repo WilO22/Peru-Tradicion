@@ -1,107 +1,104 @@
 // src/app/services/costume.ts
-import { Injectable, inject } from '@angular/core';
+
+import { Injectable, inject, signal, computed, Signal } from '@angular/core'; 
 import { 
   Firestore, 
   collection, 
   collectionData, 
-  doc, 
-  addDoc, 
-  deleteDoc, 
-  updateDoc, 
-  DocumentReference,
-  CollectionReference,
-  FirestoreDataConverter, 
-  DocumentData,
-  QueryDocumentSnapshot,
-  SnapshotOptions,
-  WithFieldValue // Importamos WithFieldValue para el conversor
+  // ... (otros imports de firestore)
+  doc, addDoc, deleteDoc, updateDoc, CollectionReference,
+  FirestoreDataConverter, DocumentData, QueryDocumentSnapshot,
+  SnapshotOptions, WithFieldValue
 } from '@angular/fire/firestore';
-import { CostumeModel } from '../interfaces/costume.model'; // Usamos el nombre corregido
+import { CostumeModel, CostumeRegion, CostumeSize } from '../interfaces/costume.model';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-// --- Conversor de Firestore (Corregido) ---
+// --- El Conversor de Firestore (Sin cambios) ---
 const costumeConverter: FirestoreDataConverter<CostumeModel> = {
-  // toFirestore: Se llama cuando usamos setDoc() o addDoc()
   toFirestore(costume: WithFieldValue<CostumeModel>): DocumentData {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = costume; // Excluimos el 'id' al guardar
+    const { id, ...data } = costume;
     return data;
   },
-  
-  // fromFirestore: Se llama cuando leemos datos (como en collectionData)
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
     options: SnapshotOptions
   ): CostumeModel {
     const data = snapshot.data(options)!; 
-    // Creamos y devolvemos un objeto CostumeModel completo
     return {
-      id: snapshot.id, // Obtenemos el ID del snapshot
-      name: data['name'],
-      region: data['region'],
-      price: data['price'],
-      image: data['image'],
-      sizes: data['sizes'],
-      description: data['description']
-    } as CostumeModel; // Aseguramos el tipo
+      id: snapshot.id,
+      ...data
+    } as CostumeModel; 
   }
 };
 // --- Fin Conversor ---
 
-
 @Injectable({
   providedIn: 'root'
 })
-export class Costume { // <-- Nuestra clase de servicio
-
+export class Costume { 
+  
   #firestore: Firestore = inject(Firestore);
+  
+  // --- SECCIÓN DE ESTADO ---
 
-  // --- CORRECCIÓN 1: Inicialización Directa ---
-  // Inicializamos la referencia a la colección directamente aquí,
-  // aplicando el conversor de inmediato.
-  #costumesCollection: CollectionReference<CostumeModel> = collection(this.#firestore, 'costumes')
-      .withConverter(costumeConverter); 
+  readonly #selectedRegion = signal<CostumeRegion | 'Todos'>('Todos');
+  readonly #selectedSize = signal<CostumeSize | 'Todos'>('Todos');
+  
+  readonly #costumesCollection: CollectionReference<CostumeModel>; 
 
-  // Ya NO necesitamos el constructor para esto
-  // constructor() { }
+  // ↓↓↓ CORRECCIÓN 1: Hacemos pública la lista COMPLETA ↓↓↓
+  // (Quitamos el '#' de '#allCostumes')
+  readonly allCostumes: Signal<CostumeModel[]>; // Este es el Signal con TODOS los disfraces
 
-  // --- Obtener Todos los Disfraces ---
-  // Ahora, cuando se lee costumes$, #costumesCollection YA está inicializada.
-  readonly costumes$ = collectionData(this.#costumesCollection) as Observable<CostumeModel[]>;
-  readonly costumes = toSignal(this.costumes$, { initialValue: [] });
+  // 3. Estado Derivado (Público)
+  readonly filteredCostumes: Signal<CostumeModel[]>; // Para la página 'Home'
 
-  // --- Operaciones CRUD ---
+  // 4. Exponemos los signals de solo lectura para la UI
+  public readonly selectedRegion = this.#selectedRegion.asReadonly();
+  public readonly selectedSize = this.#selectedSize.asReadonly();
 
-  /**
-   * Agrega un nuevo disfraz a la colección 'costumes'
-   * @param costumeData Datos del disfraz (sin el ID, Firestore lo genera)
-   */
-  addCostume(costumeData: Omit<CostumeModel, 'id'>) {
-    // addDoc usará la referencia con conversor (#costumesCollection)
-    // y aplicará toFirestore automáticamente.
-    // El conversor espera un tipo CostumeModel, pero addDoc infiere Omit<CostumeModel, 'id'>.
-    // Le pasamos los datos y forzamos el tipo que espera el conversor.
-    return addDoc(this.#costumesCollection, costumeData as CostumeModel);
+  constructor() {
+    this.#costumesCollection = collection(this.#firestore, 'costumes')
+        .withConverter(costumeConverter); 
+    
+    const costumes$ = collectionData(this.#costumesCollection) as Observable<CostumeModel[]>;
+    // ↓↓↓ CORRECCIÓN 2: Asignamos al Signal público 'allCostumes' ↓↓↓
+    this.allCostumes = toSignal(costumes$, { initialValue: [] });
+
+    // 'computed' ahora usa el Signal público 'allCostumes'
+    this.filteredCostumes = computed(() => {
+      // ↓↓↓ CORRECCIÓN 3: Leemos de 'this.allCostumes()' ↓↓↓
+      const costumes = this.allCostumes();
+      const region = this.#selectedRegion();
+      const size = this.#selectedSize();
+
+      return costumes
+        .filter(c => region === 'Todos' || c.region === region)
+        .filter(c => size === 'Todos' || c.sizes.includes(size));
+    });
   }
 
-  /**
-   * Elimina un disfraz de la colección por su ID
-   * @param costumeId ID del documento a eliminar
-   */
+  // --- MÉTODOS PÚBLICOS (sin cambios) ---
+  changeRegion(region: CostumeRegion | 'Todos') {
+    this.#selectedRegion.set(region);
+  }
+
+  changeSize(size: CostumeSize | 'Todos') {
+    this.#selectedSize.set(size);
+  }
+
+  // --- MÉTODOS CRUD (sin cambios) ---
+  addCostume(costumeData: Omit<CostumeModel, 'id'>) {
+    return addDoc(this.#costumesCollection, costumeData as CostumeModel);
+  }
+  // ... (deleteCostume y updateCostume se quedan igual)
   deleteCostume(costumeId: string) {
-    // deleteDoc no usa el conversor, solo necesita la ruta
     const costumeDocRef = doc(this.#firestore, `costumes/${costumeId}`);
     return deleteDoc(costumeDocRef);
   }
 
-  /**
-   * Actualiza un disfraz existente en la colección
-   * @param costumeId ID del documento a actualizar
-   * @param updatedData Datos parciales a actualizar
-   */
   updateCostume(costumeId: string, updatedData: Partial<Omit<CostumeModel, 'id'>>) {
-    // updateDoc tampoco usa el conversor, solo la ruta y datos parciales
     const costumeDocRef = doc(this.#firestore, `costumes/${costumeId}`);
     return updateDoc(costumeDocRef, updatedData);
   }
