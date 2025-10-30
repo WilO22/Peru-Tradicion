@@ -3,8 +3,11 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
-// 1. Importa el servicio de Toasts
 import { HotToastService } from '@ngxpert/hot-toast';
+// 1. IMPORTAMOS UserService y firstValueFrom
+import { User as UserService } from '../../services/user'; // Renombramos para claridad
+import { firstValueFrom } from 'rxjs'; 
+import { UserProfile } from '../../interfaces/user.model'; // Importamos la interfaz
 
 @Component({
   selector: 'app-login',
@@ -15,11 +18,12 @@ import { HotToastService } from '@ngxpert/hot-toast';
 })
 export class Login {
 
-  // --- 1. Inyección de Dependencias ---
+  // --- Inyección de Dependencias ---
   #authService: Auth = inject(Auth);
   #router: Router = inject(Router);
   #fb: FormBuilder = inject(FormBuilder);
-  #toast: HotToastService = inject(HotToastService); // 2. Inyéctalo
+  #toast: HotToastService = inject(HotToastService);
+  #userService: UserService = inject(UserService); // 2. Inyectamos UserService
 
   // --- Estado y Formulario (sin cambios) ---
   isLoading = signal(false);
@@ -38,27 +42,50 @@ export class Login {
     this.loginError.set(null);
 
     try {
-      await this.#authService.login(
+      // --- PASO 1: Intentar Iniciar Sesión ---
+      const userCredential = await this.#authService.login(
         this.loginForm.value.email,
         this.loginForm.value.password
       );
+
+      const firebaseUser = userCredential.user;
+
+      if (!firebaseUser) {
+        throw new Error('Usuario no encontrado después del login.');
+      }
       
-      // 3. ¡LA MEJORA DE UX! Mostramos un Toast de éxito
       this.#toast.success('¡Inicio de sesión exitoso!');
 
-      // (En el siguiente paso, añadiremos la lógica para redirigir
-      // a /admin si el usuario es admin)
-      this.#router.navigate(['/']); 
+      // --- PASO 2: Obtener el Perfil/Rol de Firestore ---
+      console.log('Login exitoso. Obteniendo perfil para uid:', firebaseUser.uid);
+      // Usamos firstValueFrom para obtener el rol UNA VEZ.
+      // Añadimos tipado explícito aquí para más claridad.
+      const userProfile: UserProfile | undefined = await firstValueFrom(this.#userService.getUserProfile(firebaseUser.uid));
+      console.log('Perfil obtenido:', userProfile);
+
+
+      // --- PASO 3: Redirigir según el Rol ---
+      if (userProfile?.role === 'admin') {
+        console.log('Usuario es Admin. Redirigiendo a /admin...');
+        this.#router.navigate(['/admin']); 
+      } else {
+        console.log('Usuario es Cliente o sin rol definido. Redirigiendo a /');
+        this.#router.navigate(['/']); 
+      }
       
     } catch (error: any) {
-      console.error('Error de login:', error.code);
-      if (error.code === 'auth/invalid-credential') {
+      console.error('Error de login:', error.code, error.message);
+      if (error.code === 'auth/invalid-credential' || error.message?.includes('auth/invalid-credential')) { 
         this.loginError.set('Usuario o contraseña incorrectos.');
       } else {
         this.loginError.set('Ocurrió un error inesperado. Inténtalo de nuevo.');
       }
-    } finally {
-      this.isLoading.set(false);
-    }
+      // Asegurarse de quitar el estado de carga en caso de error también
+      this.isLoading.set(false); // <--- Mover o añadir esta línea aquí
+    } 
+    // No necesitamos el 'finally' si manejamos isLoading en el catch
+    // finally {
+    //   this.isLoading.set(false); // <-- Ya no es necesario aquí si está en el catch
+    // }
   }
 }
