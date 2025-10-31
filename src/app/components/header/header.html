@@ -3,63 +3,104 @@
     <div class="flex items-center justify-between h-20">
       
       <div class="flex-shrink-0">
-        <a [routerLink]="['/']" class="text-2xl font-bold text-gray-800 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mr-2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <a routerLink="/" class="text-2xl font-bold text-gray-800 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mr-2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
           Perú Tradición
         </a>
       </div>
       
-      <nav id="region-nav-desktop" class="hidden md:flex md:space-x-8">
+      <nav class="hidden md:flex md:space-x-8">
         <a 
           href="#" 
-          (click)="changeRegion('Todos'); $event.preventDefault()"
-          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition py-2"
-          [class.active-nav]="selectedRegion() === 'Todos'">Todos</a>
+          (click)="$event.preventDefault(); changeRegion('Todos')"
+          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition"
+          [class.active-nav]="selectedRegion() === 'Todos'">
+          Todos
+        </a>
         <a 
           href="#" 
-          (click)="changeRegion('Costa'); $event.preventDefault()"
-          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition py-2"
-          [class.active-nav]="selectedRegion() === 'Costa'">Costa</a>
+          (click)="$event.preventDefault(); changeRegion('Costa')"
+          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition"
+          [class.active-nav]="selectedRegion() === 'Costa'">
+          Costa
+        </a>
         <a 
           href="#" 
-          (click)="changeRegion('Sierra'); $event.preventDefault()"
-          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition py-2"
-          [class.active-nav]="selectedRegion() === 'Sierra'">Sierra</a>
+          (click)="$event.preventDefault(); changeRegion('Sierra')"
+          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition"
+          [class.active-nav]="selectedRegion() === 'Sierra'">
+          Sierra
+        </a>
         <a 
           href="#" 
-          (click)="changeRegion('Selva'); $event.preventDefault()"
-          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition py-2"
-          [class.active-nav]="selectedRegion() === 'Selva'">Selva</a>
+          (click)="$event.preventDefault(); changeRegion('Selva')"
+          class="nav-link text-gray-600 hover:text-indigo-600 font-medium transition"
+          [class.active-nav]="selectedRegion() === 'Selva'">
+          Selva
+        </a>
       </nav>
 
       <div class="flex items-center space-x-4">
         
-        @if (authService.currentUser()) {
-          <a [routerLink]="['/admin']" class="hidden sm:block text-indigo-600 hover:text-indigo-800" title="Panel Admin">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><circle cx="12" cy="4" r="2"></circle></svg>
-          </a>
-          <button (click)="logout()" class="hidden sm:block text-gray-500 hover:text-red-600" title="Cerrar Sesión">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          </button>
-        } @else {
-          <a [routerLink]="['/login']" class="hidden sm:block text-gray-500 hover:text-indigo-600" title="Acceso Administrador">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          </a>
-        }
-        
-        <button id="mobile-menu-button" class="md:hidden p-2 text-gray-600 hover:text-indigo-600">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
+        <div class="hidden sm:block">
+          @if (currentUser(); as user) {
+            
+            @if (isAdmin()) {
+              <a routerLink="/admin" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                Panel Admin
+              </a>
+            } @else {
+              <button (click)="logout()" class="text-sm font-medium text-gray-600 hover:text-indigo-500">
+                Cerrar Sesión
+              </button>
+            }
+
+          } @else {
+            <a routerLink="/login" class="text-gray-500 hover:text-indigo-600" title="Acceso Administrador">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          }
+        </div>
+
+        <button (click)="isMobileMenuOpen.set(!isMobileMenuOpen())" class="md:hidden p-2 text-gray-600 hover:text-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+            <line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" />
+          </svg>
         </button>
       </div>
     </div>
   </div>
-  
-  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
-    <nav id="region-nav-mobile" class="flex flex-col items-center p-4 space-y-2">
-      <a href="#" (click)="changeRegion('Todos'); $event.preventDefault()" [class.active-nav]="selectedRegion() === 'Todos'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Todos</a>
-      <a href="#" (click)="changeRegion('Costa'); $event.preventDefault()" [class.active-nav]="selectedRegion() === 'Costa'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Costa</a>
-      <a href="#" (click)="changeRegion('Sierra'); $event.preventDefault()" [class.active-nav]="selectedRegion() === 'Sierra'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Sierra</a>
-      <a href="#" (click)="changeRegion('Selva'); $event.preventDefault()" [class.active-nav]="selectedRegion() === 'Selva'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Selva</a>
-    </nav>
-  </div>
+
+  @if (isMobileMenuOpen()) {
+    <div class="md:hidden bg-white border-t border-gray-200">
+      <nav class="flex flex-col items-center p-4 space-y-2">
+        <a href="#" (click)="$event.preventDefault(); changeRegion('Todos')" [class.active-nav]="selectedRegion() === 'Todos'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Todos</a>
+        <a href="#" (click)="$event.preventDefault(); changeRegion('Costa')" [class.active-nav]="selectedRegion() === 'Costa'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Costa</a>
+        <a href="#" (click)="$event.preventDefault(); changeRegion('Sierra')" [class.active-nav]="selectedRegion() === 'Sierra'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Sierra</a>
+        <a href="#" (click)="$event.preventDefault(); changeRegion('Selva')" [class.active-nav]="selectedRegion() === 'Selva'" class="nav-link text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">Selva</a>
+        
+        <div class="border-t w-full pt-4 mt-2 flex flex-col items-center">
+          @if (currentUser(); as user) {
+            @if (isAdmin()) {
+              <a routerLink="/admin" (click)="isMobileMenuOpen.set(false)" class="text-indigo-600 font-semibold text-lg py-2 w-full text-center">
+                Panel Admin
+              </a>
+            }
+            <button (click)="logout()" class="text-red-600 font-semibold text-lg py-2 w-full text-center">
+              Cerrar Sesión
+            </button>
+          } @else {
+            <a routerLink="/login" (click)="isMobileMenuOpen.set(false)" class="text-gray-700 hover:text-indigo-600 font-semibold text-lg py-2 w-full text-center">
+              Login
+            </a>
+          }
+        </div>
+      </nav>
+    </div>
+  }
 </header>

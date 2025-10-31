@@ -1,0 +1,26 @@
+@if (activeBanner(); as banner) {
+  <div 
+    class="relative bg-gradient-to-r from-pink-500 to-red-500 rounded-2xl overflow-hidden text-white p-6 md:p-12 flex items-center min-h-[300px]">
+
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+
+    <img 
+      [src]="banner.image"
+      [alt]="banner.title" 
+      class="absolute inset-0 w-full h-full object-cover opacity-40">
+
+    <div class="relative z-10 max-w-2xl">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 leading-tight tracking-tight">
+        {{ banner.title }}
+      </h1>
+      <p class="text-base sm:text-lg md:text-xl mb-6">
+        {{ banner.subtitle }}
+      </p>
+      <a href="#" class="bg-white text-pink-600 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300 text-sm sm:text-base">
+        {{ banner.buttonText }}
+      </a>
+    </div>
+  </div>
+} @else {
+  <div class="min-h-[300px]"></div>
+}
