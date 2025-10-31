@@ -3,10 +3,7 @@
     <h1 class="text-3xl font-bold text-gray-900">Gestión de Disfraces</h1>
     <p class="mt-1 text-gray-600">Agrega, edita o elimina los productos del catálogo.</p>
   </div>
-  <button 
-    (click)="openCreateModal()"
-    class="mt-4 sm:mt-0 flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  <button (click)="openModal(null)" class="mt-4 sm:mt-0 flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
     Nuevo Disfraz
   </button>
 </div>
@@ -25,54 +22,46 @@
         </tr>
       </thead>
       <tbody>
-        @if (costumes(); as allCostumes) {
-          @for (costume of allCostumes; track costume.id) {
-            <tr class="bg-white border-b hover:bg-slate-50">
-              <td class="px-6 py-4">
-                <img [src]="costume.image" [alt]="costume.name" class="w-16 h-20 object-cover rounded-md shadow-sm">
-              </td>
-              <td class="px-6 py-4 font-semibold text-gray-900">{{ costume.name }}</td>
-              <td class="px-6 py-4">
-                <span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs"
-                      [class.bg-sky-100]="costume.region === 'Costa'"
-                      [class.text-sky-800]="costume.region === 'Costa'"
-                      [class.bg-amber-100]="costume.region === 'Sierra'"
-                      [class.text-amber-800]="costume.region === 'Sierra'"
-                      [class.bg-green-100]="costume.region === 'Selva'"
-                      [class.text-green-800]="costume.region === 'Selva'">
-                  {{ costume.region }}
+        @for (costume of costumes(); track costume.id) {
+          <tr class="bg-white border-b hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <img [src]="costume.image" [alt]="costume.name" class="w-16 h-20 object-cover rounded-md shadow-sm">
+            </td>
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ costume.name }}</td>
+            <td class="px-6 py-4">
+              <span 
+                class="px-2 py-1 font-semibold leading-tight rounded-full text-xs"
+                [ngClass]="{
+                  'bg-sky-100 text-sky-800': costume.region === 'Costa',
+                  'bg-amber-100 text-amber-800': costume.region === 'Sierra',
+                  'bg-green-100 text-green-800': costume.region === 'Selva'
+                }">
+                {{ costume.region }}
+              </span>
+            </td>
+            <td class="px-6 py-4 font-medium">S/ {{ costume.price.toFixed(2) }}</td>
+            <td class="px-6 py-4 flex flex-wrap gap-1 items-center">
+              @for (size of costume.sizes; track $index) {
+                <span class="bg-slate-200 text-slate-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                  {{ size }}
                 </span>
-              </td>
-              <td class="px-6 py-4 font-medium">S/ {{ costume.price.toFixed(2) }}</td>
-              <td class="px-6 py-4 flex flex-wrap gap-1 items-center pt-5">
-                @for (size of costume.sizes; track $index) {
-                  <span class="bg-slate-200 text-slate-700 text-xs font-medium px-2 py-0.5 rounded-full">{{ size }}</span>
-                }
-              </td>
-              <td class="px-6 py-4 text-center">
-                <div class="flex justify-center items-center gap-2">
-                  <button 
-                    (click)="openEditModal(costume)"
-                    class="p-2 text-blue-600 hover:bg-blue-100 rounded-full" title="Editar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
-                  </button>
-                  <button 
-                    (click)="onDelete(costume.id, costume.name)" 
-                    class="p-2 text-red-600 hover:bg-red-100 rounded-full" title="Eliminar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        } @else {
-          <tr class="bg-white border-b">
-            <td colspan="6" class="text-center py-10 text-gray-500">
-              @if (costumes().length === 0) {
-                <span>No hay disfraces. ¡Agrega el primero!</span>
-              } @else {
-                <span>Cargando disfraces...</span>
               }
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex justify-center items-center gap-2">
+                <button (click)="openModal(costume)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-full">
+                  Editar
+                </button>
+                <button (click)="deleteCostume(costume)" class="p-2 text-red-600 hover:bg-red-100 rounded-full">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center py-10 text-gray-500">
+              Aún no hay disfraces. ¡Agrega el primero!
             </td>
           </tr>
         }
@@ -82,12 +71,8 @@
 </div>
 
 @if (isModalOpen()) {
-  <div class="fixed inset-0 bg-black bg-opacity-60 z-40 backdrop-blur-sm"></div>
-  
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <app-costume-form 
-      [costumeToEdit]="editingCostume()" 
-      (close)="closeModal()"
-    />
-  </div>
+  <app-costume-form 
+    [costumeToEdit]="selectedCostume()"
+    (closeModal)="closeModal()">
+  </app-costume-form>
 }

@@ -1,57 +1,65 @@
 // src/app/pages/admin/manage-costumes/manage-costumes.ts
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HotToastService } from '@ngxpert/hot-toast';
+import { Costume } from '../../../services/costume';
+import { CostumeModel } from '../../../interfaces/costume.model';
 
-import { Component, inject, signal } from '@angular/core'; // ¡Importamos signal!
-import { Costume } from '../../../services/costume'; 
-import { CostumeModel } from '../../../interfaces/costume.model'; 
-import { CostumeForm } from '../../../components/costume-form/costume-form'; // <-- 1. Importar el Formulario
+// 1. Importamos nuestro componente de formulario
+import { CostumeForm } from '../../../components/costume-form/costume-form';
 
 @Component({
   selector: 'app-manage-costumes',
   standalone: true,
-  imports: [
-    CostumeForm // <-- 2. Añadir el Formulario a los imports
-  ], 
-  templateUrl: './manage-costumes.html', 
+  // 2. Añadimos CommonModule y CostumeForm a los imports
+  imports: [CommonModule, CostumeForm],
+  templateUrl: './manage-costumes.html',
 })
-export class ManageCostumes { 
-  
-  private costumeService = inject(Costume);
+export class ManageCostumes {
+  // --- Principio: Inyección con inject() ---
+  #costumeService = inject(Costume);
+  #toast = inject(HotToastService);
 
-  // El Signal con la lista completa de disfraces (sin cambios)
-  public costumes = this.costumeService.allCostumes; 
+  // --- Principio: Gestión de Estado con Signals ---
 
-  // --- 3. Estado para gestionar el Modal ---
-  public isModalOpen = signal(false);
-  public editingCostume = signal<CostumeModel | null>(null);
+  // Obtenemos el Signal de disfraces (la lista COMPLETA)
+  costumes = this.#costumeService.allCostumes;
 
-  constructor() {}
+  // Signals locales para manejar el estado del modal
+  isModalOpen = signal(false);
+  selectedCostume = signal<CostumeModel | null>(null);
 
-  // --- 4. Métodos para controlar el Modal ---
-
-  // Se llama al hacer clic en "Nuevo Disfraz"
-  openCreateModal() {
-    this.editingCostume.set(null); // 'null' significa modo "Crear"
-    this.isModalOpen.set(true);
+  constructor() {
+    // Opcional: ver cómo cambia el Signal de disfraces
+    // effect(() => {
+    //   console.log('Lista de disfraces actualizada:', this.costumes());
+    // });
   }
 
-  // Se llama al hacer clic en "Editar" en una fila
-  openEditModal(costume: CostumeModel) {
-    this.editingCostume.set(costume); // Pasamos el disfraz al modal
-    this.isModalOpen.set(true);
+  // --- Métodos de la UI ---
+
+  openModal(costume: CostumeModel | null) {
+    this.selectedCostume.set(costume); // Ponemos el disfraz a editar (o null si es nuevo)
+    this.isModalOpen.set(true);      // Abrimos el modal
   }
 
-  // Se llama cuando el formulario emite el evento (close)
   closeModal() {
     this.isModalOpen.set(false);
-    this.editingCostume.set(null); // Limpiamos el estado
+    this.selectedCostume.set(null); // Limpiamos la selección
   }
 
-  // Lógica de borrado (sin cambios)
-  onDelete(id: string, name: string) {
-    if (confirm(`¿Estás seguro de que deseas eliminar el disfraz "${name}"?`)) {
-      this.costumeService.deleteCostume(id)
-        .then(() => console.log(`Disfraz "${name}" eliminado.`))
-        .catch(err => console.error('Error al eliminar:', err));
+  async deleteCostume(costume: CostumeModel) {
+    if (confirm(`¿Estás seguro de que quieres eliminar "${costume.name}"?`)) {
+      try {
+        // Llamamos al método del servicio
+        await this.#costumeService.deleteCostume(costume.id);
+        this.#toast.success('Disfraz eliminado');
+        // NOTA: No necesitamos actualizar la lista. El Signal 'allCostumes'
+        // de 'costume.ts' se actualiza solo gracias a 'collectionData'.
+      } catch (error) {
+        console.error(error);
+        this.#toast.error('Error al eliminar el disfraz');
+      }
     }
   }
 }
