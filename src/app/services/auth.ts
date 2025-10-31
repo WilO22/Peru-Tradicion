@@ -1,5 +1,5 @@
 // src/app/services/auth.ts
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core'; // <-- 1. Importar Injector
 import { Router } from '@angular/router';
 import {
   Auth as FirebaseAuth,
@@ -10,7 +10,7 @@ import {
   createUserWithEmailAndPassword
 } from '@angular/fire/auth';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { User } from './user';
+import { User } from './user'; // <-- 2. Lo mantenemos, pero solo para tipos y la inyección lazy
 
 @Injectable({
   providedIn: 'root'
@@ -19,14 +19,13 @@ export class Auth {
 
   #auth: FirebaseAuth = inject(FirebaseAuth);
   #router: Router = inject(Router);
-  #userService: User = inject(User);
+  #injector: Injector = inject(Injector); // <-- 3. Inyectar el Injector principal
 
-  // --- 1. EXPONER EL OBSERVABLE DE ESTADO ---
-  // Esta será nuestra "fuente de verdad" para los guards
+  // --- 4. ELIMINAR LA INYECCIÓN DIRECTA DEL CAMPO ---
+  // #userService: User = inject(User); // <-- ESTA LÍNEA SE ELIMINA (causaba el ciclo)
+
+  // El resto de tu código de estado permanece idéntico
   readonly user$ = authState(this.#auth);
-
-  // --- 2. MODIFICAR EL SIGNAL ---
-  // Hacemos que el signal dependa de nuestro observable (más limpio)
   readonly currentUser = toSignal(this.user$);
 
   constructor() {
@@ -42,7 +41,12 @@ export class Auth {
       if (!user) {
         throw new Error('No se pudo crear el usuario en Firebase Auth.');
       }
-      await this.#userService.createUserProfile(user.uid, {
+
+      // --- 5. INYECCIÓN LAZY (PEREZOSA) ---
+      // Obtenemos el servicio User SÓLO cuando este método se llama
+      const userService = this.#injector.get(User); 
+
+      await userService.createUserProfile(user.uid, {
         uid: user.uid,
         email: user.email!,
         role: 'cliente'

@@ -1,3 +1,5 @@
+// src/app/app.routes.ts
+
 import { Routes } from '@angular/router';
 import { adminGuard } from './guards/admin-guard';
 
