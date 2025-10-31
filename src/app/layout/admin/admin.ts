@@ -1,19 +1,31 @@
 // src/app/layout/admin/admin.ts
-import { Component, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router'; // Añadir RouterLinkActive
+import { Component, inject, signal } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { CommonModule } from '@angular/common'; // Para @if
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive], // Añadir RouterLinkActive
+  // --- Principio: Arquitectura Standalone ---
+  // Importamos los módulos de Enrutamiento aquí
+  imports: [
+    CommonModule,
+    RouterOutlet,   // <-- El <router-outlet> para las páginas hijas
+    RouterLink,     // <-- El [routerLink] para los enlaces de navegación
+    RouterLinkActive // <-- El [routerLinkActive] para marcar el enlace activo
+  ],
   templateUrl: './admin.html',
-  styleUrl: './admin.css' // Puedes añadir estilos si quieres
 })
 export class Admin {
-  #authService: Auth = inject(Auth);
+  // --- Principio: Inyección con inject() ---
+  authService = inject(Auth);
 
-  onLogout() {
-    this.#authService.logout();
+  // --- Principio: Gestión de Estado con Signals ---
+  isMobileMenuOpen = signal(false);
+
+  logout() {
+    this.authService.logout();
+    this.isMobileMenuOpen.set(false); // Cerramos menú al salir
   }
 }

@@ -1,32 +1,74 @@
-<div class="flex h-screen bg-slate-100">
+<div class="flex md:flex-row flex-col h-screen bg-slate-100">
   
-  <aside class="w-64 bg-white shadow-md flex-col hidden md:flex">
+  <aside 
+    class="md:flex md:w-64 bg-white shadow-md flex-col"
+    [class.hidden]="!isMobileMenuOpen()"
+    [class.absolute]="isMobileMenuOpen()"
+    [class.z-50]="isMobileMenuOpen()"
+    [class.left-0]="isMobileMenuOpen()"
+    [class.top-0]="isMobileMenuOpen()"
+    [class.h-full]="isMobileMenuOpen()">
+    
     <div class="p-6 text-center border-b">
-      <a [routerLink]="['/']" class="text-2xl font-bold text-gray-800 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mr-2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <a routerLink="/" class="text-2xl font-bold text-gray-800 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mr-2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
         <span>Perú Tradición</span>
       </a>
     </div>
+    
     <nav class="flex-1 px-4 py-6 space-y-2">
-      <a [routerLink]="['/admin/dashboard']" routerLinkActive="active bg-indigo-50 text-indigo-800 font-semibold" [routerLinkActiveOptions]="{exact: true}" class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
+      <a 
+        routerLink="./"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+        (click)="isMobileMenuOpen.set(false)"
+        class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
         Dashboard
       </a>
-      <a [routerLink]="['/admin/manage-costumes']" routerLinkActive="active bg-indigo-50 text-indigo-800 font-semibold" class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
+      
+      <a 
+        routerLink="./costumes"
+        routerLinkActive="active"
+        (click)="isMobileMenuOpen.set(false)"
+        class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
         Disfraces
       </a>
-      <a [routerLink]="['/admin/manage-banners']" routerLinkActive="active bg-indigo-50 text-indigo-800 font-semibold" class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
+      <a 
+        routerLink="./banners"
+        routerLinkActive="active"
+        (click)="isMobileMenuOpen.set(false)"
+        class="sidebar-link flex items-center px-4 py-2 text-gray-600 hover:bg-slate-50 rounded-lg">
         Banners
       </a>
     </nav>
+    
+    <div class="px-4 pb-4">
+      <a routerLink="/" class="w-full flex items-center justify-center px-4 py-2 text-gray-600 border border-gray-300 hover:bg-slate-50 rounded-lg transition-colors duration-200">
+        Ver Catálogo
+      </a>
+    </div>
+    
     <div class="p-4 border-t">
-        <button (click)="onLogout()" class="w-full flex items-center justify-center px-4 py-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200">
-          Cerrar Sesión
-        </button>
+       <button (click)="logout()" class="w-full flex items-center justify-center px-4 py-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200">
+        Cerrar Sesión
+      </button>
     </div>
   </aside>
 
-  <main class="flex-1 overflow-y-auto p-6 sm:p-8 lg:p-10">
-    <router-outlet></router-outlet>
-  </main>
+  <main class="flex-1 overflow-y-auto p-6 sm:p-8 lg:p-10 admin-scrollbar">
+    
+    <div class="md:hidden flex items-center justify-between mb-4">
+      <button (click)="isMobileMenuOpen.set(true)" class="px-3 py-2 bg-white rounded-lg shadow text-sm">
+        Menu
+      </button>
+      <a routerLink="/" class="px-3 py-2 bg-white rounded-lg shadow text-sm">
+        Ver Catálogo
+      </a>
+    </div>
 
+    <router-outlet></router-outlet>
+    
+  </main>
 </div>
