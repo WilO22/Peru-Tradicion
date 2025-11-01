@@ -30,6 +30,9 @@ import { CostumeModel, CostumeSize } from '../../interfaces/costume.model';
 
 import { Storage, UploadStatus } from '../../services/storage';
 import { Subscription } from 'rxjs';
+
+// --- 1. Importar el nuevo servicio ---
+import { Gemini } from '../../services/gemini';
 @Component({
   selector: 'app-costume-form',
   standalone: true,
@@ -42,6 +45,8 @@ export class CostumeForm implements OnChanges {
   #costumeService = inject(Costume);
   #storageService = inject(Storage);
   #toast = inject(HotToastService);
+  // --- 2. Inyectar el servicio ---
+  #geminiService = inject(Gemini);
 
   // --- Principio: Inputs y Outputs ---
   @Input() costumeToEdit: CostumeModel | null = null;
@@ -52,6 +57,9 @@ export class CostumeForm implements OnChanges {
   isUploading = signal(false);
   uploadProgress = signal(0);
   imagePreviewUrl = signal<string | null>(null);
+
+  // --- 3. Nuevo Signal para la carga de IA ---
+  isGeneratingAI = signal(false);
 
   // Lista fija de tallas para los checkboxes
   readonly allSizes: CostumeSize[] = ['S', 'M', 'L', 'XL'];
@@ -169,6 +177,32 @@ export class CostumeForm implements OnChanges {
             this.#toast.error('Error al subir la imagen.');
           }
         });
+    }
+  }
+
+  // --- 4. Nuevo método para el botón de IA ---
+  async onGenerateDescription() {
+    const name = this.costumeForm.get('name')?.value;
+    const region = this.costumeForm.get('region')?.value;
+
+    if (!name || !region) {
+      this.#toast.error('Por favor, ingresa el Nombre y la Región primero.');
+      return;
+    }
+
+    this.isGeneratingAI.set(true);
+    try {
+      // Llamamos a nuestro servicio de Angular (que llama a nuestro backend)
+      const response = await this.#geminiService.generateCostumeDescription(name, region);
+
+      // Seteamos el valor en el formulario
+      this.costumeForm.get('description')?.setValue(response.description);
+
+    } catch (error) {
+      console.error(error);
+      this.#toast.error('Error al generar la descripción con IA.');
+    } finally {
+      this.isGeneratingAI.set(false);
     }
   }
 

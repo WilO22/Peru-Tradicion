@@ -9,6 +9,9 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
+// --- 1. Importar el proveedor de HttpClient ---
+import { provideHttpClient, withFetch } from '@angular/common/http';
+
 // Nuestro refactor de environment
 import { environment } from '../environments/environment.development';
 
@@ -27,6 +30,9 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),     // <-- ¡El proveedor correcto!
     provideRouter(routes),
     provideClientHydration(withEventReplay()), // <-- Lo mantenemos, optimiza el SSR
+
+    // --- 2. Añadir el proveedor aquí ---
+    provideHttpClient(withFetch()), // <-- Habilita HttpClient moderno
 
     // 2. Añádelo a tu lista de providers
     provideHotToastConfig({

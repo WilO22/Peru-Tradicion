@@ -1,7 +1,7 @@
 <div (click)="closeModal.emit()" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-
+  
   <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto admin-scrollbar">
-
+    
     <div class="flex justify-between items-center p-5 border-b sticky top-0 bg-white z-10">
       <h3 class="text-xl font-bold text-gray-800">
         @if (isEditing()) {
@@ -14,25 +14,42 @@
     </div>
 
     <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" class="p-6 space-y-4">
-
+      
       <div>
         <label for="banner-festivity" class="block text-sm font-medium text-gray-700 mb-1">Festividad</label>
-        <input type="text" id="banner-festivity" formControlName="festivity" class="w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: Fiestas Patrias">
+        <input type="text" id="banner-festivity" formControlName="festivity" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: Fiestas Patrias">
       </div>
 
       <div>
         <label for="banner-title" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
-        <input type="text" id="banner-title" formControlName="title" class="w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: ¡Arriba Perú!">
+        <input type="text" id="banner-title" formControlName="title" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: ¡Arriba Perú!">
       </div>
 
       <div>
         <label for="banner-subtitle" class="block text-sm font-medium text-gray-700 mb-1">Subtítulo</label>
-        <textarea id="banner-subtitle" formControlName="subtitle" rows="2" class="w-full border-gray-300 rounded-lg shadow-sm p-2"></textarea>
+        <textarea id="banner-subtitle" formControlName="subtitle" rows="2" class="w-full border-gray-300 rounded-lg shadow-sm"></textarea>
       </div>
+      
+      <button 
+        type="button" 
+        (click)="onGenerateContent()"
+        [disabled]="isGeneratingAI()"
+        class="flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-wait">
+        
+        @if (isGeneratingAI()) {
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Generando...
+        } @else {
+          Generar Contenido con IA ✨
+        }
+      </button>
 
       <div>
         <label for="banner-button-text" class="block text-sm font-medium text-gray-700 mb-1">Texto del Botón</label>
-        <input type="text" id="banner-button-text" formControlName="buttonText" class="w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: Ver Colección">
+        <input type="text" id="banner-button-text" formControlName="buttonText" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: Ver Colección">
       </div>
 
       <div>
@@ -42,14 +59,14 @@
             [src]="imagePreviewUrl() || 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Vista+Previa'" 
             alt="Vista previa" 
             class="w-24 h-24 object-cover rounded-lg bg-slate-100">
-
+          
           <input 
             type="file" 
             id="banner-image-upload" 
             class="hidden" 
             accept="image/*"
             (change)="onFileSelected($event)">
-
+          
           <label for="banner-image-upload" class="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
             Seleccionar Imagen
           </label>

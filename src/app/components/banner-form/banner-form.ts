@@ -22,6 +22,9 @@ import { BannerModel } from '../../interfaces/banner.model';
 import { Storage, UploadStatus } from '../../services/storage';
 import { Subscription } from 'rxjs';
 
+// --- 1. Importar el nuevo servicio ---
+import { Gemini } from '../../services/gemini';
+
 @Component({
   selector: 'app-banner-form',
   standalone: true,
@@ -34,6 +37,8 @@ export class BannerForm implements OnChanges {
   #bannerService = inject(Banner);
   #storageService = inject(Storage);
   #toast = inject(HotToastService);
+  // --- 2. Inyectar el servicio ---
+  #geminiService = inject(Gemini);
 
   // --- Inputs y Outputs ---
   @Input() bannerToEdit: BannerModel | null = null;
@@ -44,6 +49,9 @@ export class BannerForm implements OnChanges {
   isUploading = signal(false);
   uploadProgress = signal(0);
   imagePreviewUrl = signal<string | null>(null);
+
+  // --- 3. Nuevo Signal para la carga de IA ---
+  isGeneratingAI = signal(false);
 
   #uploadSubscription: Subscription | null = null;
 
@@ -114,6 +122,32 @@ export class BannerForm implements OnChanges {
             this.#toast.error('Error al subir la imagen.');
           },
         });
+    }
+  }
+
+  // --- 4. Nuevo método para el botón de IA ---
+  async onGenerateContent() {
+    const festivity = this.bannerForm.get('festivity')?.value;
+    if (!festivity) {
+      this.#toast.error('Por favor, ingresa la Festividad primero.');
+      return;
+    }
+
+    this.isGeneratingAI.set(true);
+    try {
+      const response = await this.#geminiService.generateBannerContent(festivity);
+
+      // Seteamos dos valores a la vez
+      this.bannerForm.patchValue({
+        title: response.title,
+        subtitle: response.subtitle
+      });
+
+    } catch (error) {
+      console.error(error);
+      this.#toast.error('Error al generar contenido con IA.');
+    } finally {
+      this.isGeneratingAI.set(false);
     }
   }
 

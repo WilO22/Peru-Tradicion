@@ -75,3 +75,5 @@ Thumbs.db
 
 # Ignorar nuestro archivo de claves de desarrollo local
 /src/environments/environment.development.ts
+
+.env
