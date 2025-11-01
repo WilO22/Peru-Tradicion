@@ -41,6 +41,15 @@ export const routes: Routes = [
             (m) => m.ManageCostumes 
           ),
       },
+      // --- ¡NUEVA RUTA AÑADIDA! ---
+      {
+        path: 'banners',
+        loadComponent: () =>
+          import('./pages/admin/manage-banners/manage-banners').then(
+            (m) => m.ManageBanners
+          ),
+      },
+      // --- FIN DE LA NUEVA RUTA ---
     ],
   },
   // Rutas sin layout

@@ -1,0 +1,79 @@
+<div (click)="closeModal.emit()" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+
+  <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto admin-scrollbar">
+
+    <div class="flex justify-between items-center p-5 border-b sticky top-0 bg-white z-10">
+      <h3 class="text-xl font-bold text-gray-800">
+        @if (isEditing()) {
+          Editar Banner
+        } @else {
+          Agregar Nuevo Banner
+        }
+      </h3>
+      <button (click)="closeModal.emit()" class="text-gray-400 hover:text-gray-600">X</button>
+    </div>
+
+    <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" class="p-6 space-y-4">
+
+      <div>
+        <label for="banner-festivity" class="block text-sm font-medium text-gray-700 mb-1">Festividad</label>
+        <input type="text" id="banner-festivity" formControlName="festivity" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: Fiestas Patrias">
+      </div>
+
+      <div>
+        <label for="banner-title" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+        <input type="text" id="banner-title" formControlName="title" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: ¡Arriba Perú!">
+      </div>
+
+      <div>
+        <label for="banner-subtitle" class="block text-sm font-medium text-gray-700 mb-1">Subtítulo</label>
+        <textarea id="banner-subtitle" formControlName="subtitle" rows="2" class="w-full border-gray-300 rounded-lg shadow-sm"></textarea>
+      </div>
+
+      <div>
+        <label for="banner-button-text" class="block text-sm font-medium text-gray-700 mb-1">Texto del Botón</label>
+        <input type="text" id="banner-button-text" formControlName="buttonText" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="Ej: Ver Colección">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Imagen del Banner</label>
+        <div class="mt-1 flex items-center gap-4">
+          <img 
+            [src]="imagePreviewUrl() || 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Vista+Previa'" 
+            alt="Vista previa" 
+            class="w-24 h-24 object-cover rounded-lg bg-slate-100">
+
+          <input 
+            type="file" 
+            id="banner-image-upload" 
+            class="hidden" 
+            accept="image/*"
+            (change)="onFileSelected($event)">
+
+          <label for="banner-image-upload" class="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Seleccionar Imagen
+          </label>
+        </div>
+        @if (isUploading()) {
+          <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-indigo-600 h-2.5 rounded-full" [style.width.%]="uploadProgress()"></div>
+          </div>
+        }
+      </div>
+
+      <div class="pt-4 flex justify-end gap-3">
+        <button type="button" (click)="closeModal.emit()" class="bg-slate-100 text-gray-700 font-semibold py-2 px-4 rounded-lg">Cancelar</button>
+        <button 
+          type="submit" 
+          class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg"
+          [disabled]="isUploading() || bannerForm.invalid">
+          @if (isEditing()) {
+            Guardar Cambios
+          } @else {
+            Guardar Banner
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,77 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-900">Gestión de Banners</h1>
+    <p class="mt-1 text-gray-600">Crea y activa los banners promocionales.</p>
+  </div>
+  <button (click)="openModal(null)" class="mt-4 sm:mt-0 flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700">
+    Nuevo Banner
+  </button>
+</div>
+
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-slate-50">
+        <tr>
+          <th scope="col" class="px-6 py-4">Imagen</th>
+          <th scope="col" class="px-6 py-4">Festividad</th>
+          <th scope="col" class="px-6 py-4">Título</th>
+          <th scope="col" class="px-6 py-4">Estado</th>
+          <th scope="col" class="px-6 py-4 text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (banner of banners(); track banner.id) {
+          <tr class="bg-white border-b hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <img [src]="banner.image" [alt]="banner.title" class="w-24 h-12 object-cover rounded-md shadow-sm">
+            </td>
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ banner.festivity }}</td>
+            <td class="px-6 py-4">{{ banner.title }}</td>
+            <td class="px-6 py-4">
+              @if (banner.isActive) {
+                <span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs bg-green-100 text-green-800">
+                  Activo
+                </span>
+              } @else {
+                <span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs bg-gray-100 text-gray-800">
+                  Inactivo
+                </span>
+              }
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex justify-center items-center gap-2">
+                <button 
+                  (click)="activateBanner(banner)"
+                  [disabled]="banner.isActive"
+                  class="p-2 text-green-600 hover:bg-green-100 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Activar">
+                  Activar
+                </button>
+                <button (click)="openModal(banner)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-full" title="Editar">
+                  Editar
+                </button>
+                <button (click)="deleteBanner(banner)" class="p-2 text-red-600 hover:bg-red-100 rounded-full" title="Eliminar">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center py-10 text-gray-500">
+              Aún no hay banners.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (isModalOpen()) {
+  <app-banner-form 
+    [bannerToEdit]="selectedBanner()"
+    (closeModal)="closeModal()">
+  </app-banner-form>
+}

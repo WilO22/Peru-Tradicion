@@ -7,10 +7,18 @@ import {
   query,
   where,
   limit,
+  // --- 1. Importar métodos CRUD y de Transacción ---
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+  writeBatch, // <-- ¡Importante para 'activar'!
+  // ---
   DocumentData,
   QueryDocumentSnapshot,
   SnapshotOptions,
   FirestoreDataConverter,
+  getDocs, // <-- ¡Importante para 'activar'!
 } from '@angular/fire/firestore';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
@@ -41,30 +49,80 @@ const bannerConverter: FirestoreDataConverter<BannerModel> = {
   providedIn: 'root',
 })
 export class Banner {
-  #firestore: Firestore = inject(Firestore);
+#firestore: Firestore = inject(Firestore);
 
-  // 1. Creamos una referencia a la colección CON el convertidor
   #bannersCollection = collection(this.#firestore, 'banners').withConverter(
     bannerConverter
   );
 
-  // 2. Creamos un query para pedir SÓLO el banner activo
+  // --- Lógica de LECTURA (del Módulo 2, sin cambios) ---
+
   #activeBannerQuery = query(
     this.#bannersCollection,
-    where('isActive', '==', true), // Filtramos por el campo 'isActive'
-    limit(1) // Solo queremos uno
+    where('isActive', '==', true),
+    limit(1)
   );
-
-  // 3. Creamos el Observable que escucha cambios en ese query
-  #activeBanner$ = collectionData(this.#activeBannerQuery) as Observable<BannerModel[]>;
-
-  // 4. Convertimos el stream a un Signal
+  #activeBanner$ = collectionData(this.#activeBannerQuery) as Observable<
+    BannerModel[]
+  >;
   #activeBanners = toSignal(this.#activeBanner$, { initialValue: [] });
-
-  // 5. Usamos 'computed' para exponer SÓLO el primer banner, o null
   public readonly activeBanner = computed(() => this.#activeBanners()[0] ?? null);
+
+  // --- ¡NUEVO! Lógica de LECTURA DE TODOS los Banners (para el Admin) ---
+  #allBannersQuery = query(this.#bannersCollection); // Query sin filtros
+  #allBanners$ = collectionData(this.#allBannersQuery) as Observable<
+    BannerModel[]
+  >;
+  // Signal público para la tabla de admin
+  public readonly allBanners = toSignal(this.#allBanners$, { initialValue: [] });
 
   constructor() {}
 
-  // Dejaremos los métodos CRUD (add, update, delete) para el Módulo 5
+  // --- ¡NUEVO! Métodos CRUD ---
+
+  addBanner(bannerData: Omit<BannerModel, 'id'>) {
+    // Si es el primer banner, lo activamos por defecto
+    const dataToSave = this.allBanners().length === 0 
+      ? { ...bannerData, isActive: true } 
+      : bannerData;
+    return addDoc(this.#bannersCollection, dataToSave as BannerModel);
+  }
+
+  updateBanner(bannerId: string, updatedData: Partial<Omit<BannerModel, 'id'>>) {
+    const bannerDocRef = doc(this.#firestore, `banners/${bannerId}`);
+    return updateDoc(bannerDocRef, updatedData);
+  }
+
+  deleteBanner(bannerId: string) {
+    const bannerDocRef = doc(this.#firestore, `banners/${bannerId}`);
+    return deleteDoc(bannerDocRef);
+  }
+
+  // --- ¡NUEVO! Método de Activación (Transaccional) ---
+
+  /**
+   * Activa un banner específico y desactiva todos los demás.
+   * Esto usa un 'Batch Write' para asegurar que la operación sea atómica.
+   */
+  async setActiveBanner(bannerToActivate: BannerModel) {
+    // 1. Crear un 'batch' (lote de escrituras)
+    const batch = writeBatch(this.#firestore);
+
+    // 2. Obtener una instantánea de TODOS los banners
+    const allBannersSnapshot = await getDocs(this.#allBannersQuery);
+
+    // 3. Iterar y desactivar los que estén activos
+    allBannersSnapshot.forEach((document) => {
+      if (document.data().isActive === true) {
+        batch.update(document.ref, { isActive: false });
+      }
+    });
+
+    // 4. Activar el banner seleccionado
+    const newActiveRef = doc(this.#firestore, `banners/${bannerToActivate.id}`);
+    batch.update(newActiveRef, { isActive: true });
+
+    // 5. Ejecutar todas las operaciones del lote a la vez
+    return batch.commit();
+  }
 }
