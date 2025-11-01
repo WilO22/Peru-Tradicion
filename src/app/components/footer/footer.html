@@ -8,27 +8,22 @@
       <div>
         <h4 class="font-semibold mb-3">Categorías</h4>
         <ul class="space-y-2 text-gray-400">
-          <li><a [routerLink]="['/']" class="footer-region-link hover:text-white">Costa</a></li>
-          <li><a [routerLink]="['/']" class="footer-region-link hover:text-white">Sierra</a></li>
-          <li><a [routerLink]="['/']" class="footer-region-link hover:text-white">Selva</a></li>
+          <li><a href="#" (click)="$event.preventDefault(); filterByRegion('Costa')" class="hover:text-white">Costa</a></li>
+          <li><a href="#" (click)="$event.preventDefault(); filterByRegion('Sierra')" class="hover:text-white">Sierra</a></li>
+          <li><a href="#" (click)="$event.preventDefault(); filterByRegion('Selva')" class="hover:text-white">Selva</a></li>
         </ul>
       </div>
       <div>
         <h4 class="font-semibold mb-3">Soporte</h4>
         <ul class="space-y-2 text-gray-400">
-          <li><a [routerLink]="['/']" class="hover:text-white">Contáctanos</a></li>
-          <li><a [routerLink]="['/']" class="hover:text-white">Preguntas Frecuentes</a></li>
-          <li><a [routerLink]="['/']" class="hover:text-white">Guía de Tallas</a></li>
+          <li><a href="#" class="hover:text-white">Contáctanos</a></li>
+          <li><a href="#" class="hover:text-white">Preguntas Frecuentes</a></li>
+          <li><a href="#" class="hover:text-white">Guía de Tallas</a></li>
         </ul>
       </div>
       <div>
         <h4 class="font-semibold mb-3">Síguenos</h4>
-        <div class="flex space-x-4">
-          <a [routerLink]="['/']" class="text-gray-400 hover:text-white">Facebook</a>
-          <a [routerLink]="['/']" class="text-gray-400 hover:text-white">Instagram</a>
-          <a [routerLink]="['/']" class="text-gray-400 hover:text-white">Twitter</a>
         </div>
-      </div>
     </div>
     <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
       &copy; 2025 Perú Tradición. Todos los derechos reservados.
