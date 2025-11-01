@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-bold text-gray-900">Gestión de Disfraces</h1>
     <p class="mt-1 text-gray-600">Agrega, edita o elimina los productos del catálogo.</p>
   </div>
-  <button (click)="openModal(null)" class="mt-4 sm:mt-0 flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
+  <button (click)="openFormModal(null)" class="mt-4 sm:mt-0 flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
     Nuevo Disfraz
   </button>
 </div>
@@ -49,10 +49,10 @@
             </td>
             <td class="px-6 py-4 text-center">
               <div class="flex justify-center items-center gap-2">
-                <button (click)="openModal(costume)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-full">
+                <button (click)="openFormModal(costume)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-full">
                   Editar
                 </button>
-                <button (click)="deleteCostume(costume)" class="p-2 text-red-600 hover:bg-red-100 rounded-full">
+                <button (click)="openConfirmModal(costume)" class="p-2 text-red-600 hover:bg-red-100 rounded-full">
                   Eliminar
                 </button>
               </div>
@@ -70,9 +70,18 @@
   </div>
 </div>
 
-@if (isModalOpen()) {
+@if (isFormModalOpen()) {
   <app-costume-form 
     [costumeToEdit]="selectedCostume()"
-    (closeModal)="closeModal()">
+    (closeModal)="closeFormModal()">
   </app-costume-form>
+}
+
+@if (isConfirmModalOpen()) {
+  <app-confirm-modal
+    [title]="'Confirmar Eliminación'"
+    [message]="'¿Estás seguro de que quieres eliminar el disfraz \'' + (costumeToDelete()?.name || '...') + '\'?'"
+    (confirm)="handleConfirmDelete()"
+    (close)="closeConfirmModal()">
+  </app-confirm-modal>
 }

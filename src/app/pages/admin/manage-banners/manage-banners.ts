@@ -2,57 +2,79 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HotToastService } from '@ngxpert/hot-toast';
-
-// --- CORRECCIÓN DE RUTAS: Usamos ../../../ ---
 import { Banner } from '../../../services/banner';
 import { BannerModel } from '../../../interfaces/banner.model';
 import { BannerForm } from '../../../components/banner-form/banner-form';
-// --- FIN DE LA CORRECCIÓN ---
+
+// --- 1. Importar el nuevo modal ---
+import { ConfirmModal } from '../../../components/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-manage-banners',
   standalone: true,
-  imports: [CommonModule, BannerForm], // Ahora 'BannerForm' se encontrará
+  // --- 2. Añadir ConfirmModal a los imports ---
+  imports: [CommonModule, BannerForm, ConfirmModal],
   templateUrl: './manage-banners.html',
 })
 export class ManageBanners {
-  // --- Inyección de Dependencias ---
-  #bannerService = inject(Banner); // Ahora 'Banner' se encontrará
+  #bannerService = inject(Banner);
   #toast = inject(HotToastService);
 
-  // --- Signals de Estado ---
-  banners = this.#bannerService.allBanners; // Ya no será 'unknown'
-  isModalOpen = signal(false);
+  banners = this.#bannerService.allBanners;
+
+  // --- Estado del Modal de Formulario ---
+  isFormModalOpen = signal(false);
   selectedBanner = signal<BannerModel | null>(null);
 
-  // --- Métodos de la UI ---
-  openModal(banner: BannerModel | null) {
+  // --- 3. Nuevos Signals para el Modal de Confirmación ---
+  isConfirmModalOpen = signal(false);
+  bannerToDelete = signal<BannerModel | null>(null);
+
+  // --- Métodos del Modal de Formulario ---
+  openFormModal(banner: BannerModel | null) {
     this.selectedBanner.set(banner);
-    this.isModalOpen.set(true);
+    this.isFormModalOpen.set(true);
   }
 
-  closeModal() {
-    this.isModalOpen.set(false);
+  closeFormModal() {
+    this.isFormModalOpen.set(false);
     this.selectedBanner.set(null);
   }
 
-  async deleteBanner(banner: BannerModel) {
-    if (confirm(`¿Estás seguro de que quieres eliminar "${banner.festivity}"?`)) {
-      try {
-        await this.#bannerService.deleteBanner(banner.id); // Ya no será 'unknown'
-        this.#toast.success('Banner eliminado');
-      } catch (error) {
-        this.#toast.error('Error al eliminar el banner.');
-      }
-    }
+  // --- 4. Métodos para el Modal de Confirmación ---
+
+  // El botón 'Eliminar' de la tabla ahora llama a ESTE método
+  openConfirmModal(banner: BannerModel) {
+    this.bannerToDelete.set(banner);
+    this.isConfirmModalOpen.set(true);
   }
 
+  closeConfirmModal() {
+    this.isConfirmModalOpen.set(false);
+    this.bannerToDelete.set(null);
+  }
+
+  // El modal de confirmación emite (confirm) y llama a ESTE método
+  async handleConfirmDelete() {
+    const banner = this.bannerToDelete();
+    if (!banner) return;
+
+    try {
+      await this.#bannerService.deleteBanner(banner.id);
+      this.#toast.success('Banner eliminado');
+    } catch (error) {
+      this.#toast.error('Error al eliminar el banner.');
+    }
+
+    this.closeConfirmModal();
+  }
+
+  // Método de 'Activar' (sin cambios)
   async activateBanner(banner: BannerModel) {
     if (banner.isActive) return;
-
     const toastRef = this.#toast.loading('Activando banner...');
     try {
-      await this.#bannerService.setActiveBanner(banner); // Ya no será 'unknown'
+      await this.#bannerService.setActiveBanner(banner);
       toastRef.close();
       this.#toast.success('Banner activado');
     } catch (error) {
